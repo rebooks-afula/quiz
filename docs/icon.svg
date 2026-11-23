@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs><linearGradient id="bg" x2="0" y2="1"><stop stop-color="#073b56"/><stop offset="1" stop-color="#052b43"/></linearGradient><linearGradient id="page" x2="0" y2="1"><stop stop-color="#fff8e8"/><stop offset="1" stop-color="#f3dfb8"/></linearGradient></defs>
+<rect width="512" height="512" rx="112" fill="url(#bg)"/>
+<g transform="translate(0 5)">
+<path d="M143 86h75v183h-75z" rx="22" fill="#ff604b"/><path d="M219 60h75v205h-75z" fill="#ffbd25"/><path d="M295 88h75v181h-75z" fill="#20c3c4"/>
+<path d="M76 187c72-27 128-19 180 24v207c-56-42-112-49-180-19z" fill="#087b9b" stroke="#034765" stroke-width="12" stroke-linejoin="round"/>
+<path d="M436 187c-72-27-128-19-180 24v207c56-42 112-49 180-19z" fill="#087b9b" stroke="#034765" stroke-width="12" stroke-linejoin="round"/>
+<path d="M88 178c69-24 121-16 168 27v195c-52-38-105-44-168-17z" fill="url(#page)"/>
+<path d="M424 178c-69-24-121-16-168 27v195c52-38 105-44 168-17z" fill="url(#page)"/>
+<path d="M112 235c45-13 81-9 119 15M107 282c48-13 84-8 124 16M103 329c49-12 87-8 128 17M400 235c-45-13-81-9-119 15M405 282c-48-13-84-8-124 16M409 329c-49-12-87-8-128 17" fill="none" stroke="#d9b985" stroke-width="14" stroke-linecap="round"/>
+<path d="M256 205v195" stroke="#e5cda4" stroke-width="5"/>
+</g></svg>
