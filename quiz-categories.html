@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>אתגר קטגוריות הספרים</title>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:20px;background:#f3f7f3;color:#24352b;font-family:Arial,sans-serif;line-height:1.55}main{max-width:850px;margin:auto;background:white;padding:clamp(18px,4vw,36px);border-radius:18px;box-shadow:0 8px 28px #173c2412}header{text-align:center;border-bottom:1px solid #dbe5dd;padding-bottom:18px;margin-bottom:22px}h1{margin:0;color:#216b45}.muted{color:#68776e}.levels{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px 0}.level{border:1px solid #dbe5dd;border-radius:12px;padding:15px;text-align:center}.level button,button{border:0;border-radius:9px;padding:12px 17px;background:#216b45;color:white;font-size:1rem;font-weight:bold;cursor:pointer}.level button{width:100%;margin-top:10px}.level small{display:block;color:#68776e}.bar{height:8px;background:#e7eee8;border-radius:9px;margin:12px 0 22px;overflow:hidden}.bar span{display:block;height:100%;background:#27804f}.meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}.pill{background:#e8f3ec;color:#216b45;padding:5px 12px;border-radius:30px}.book{display:grid;grid-template-columns:170px 1fr;gap:22px;border:1px solid #dbe5dd;border-radius:14px;padding:18px}.cover{width:100%;aspect-ratio:2/3;object-fit:contain;background:#f0f3f0;border-radius:8px}.title{font-size:1.4rem;font-weight:bold}.answers{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.answer{background:white;color:#24352b;border:1px solid #dbe5dd;text-align:right;font-weight:normal;min-height:52px}.answer.correct{background:#e5f4e8;border:2px solid #348451}.answer.wrong{background:#fff0ef;border:2px solid #c75a54}.answer:disabled{cursor:default}.feedback{padding:14px;border-radius:10px;background:#f1f5f1;margin-top:14px}.good{background:#e8f5eb}.bad{background:#fff0ef}.actions{display:flex;justify-content:space-between;gap:10px;margin-top:18px;flex-wrap:wrap}.secondary{background:#edf2ee;color:#24352b;border:1px solid #dbe5dd}.hidden{display:none}.result{text-align:center;padding:25px}.score{font-size:3rem;color:#216b45;font-weight:bold}footer{text-align:center;color:#68776e;font-size:.85rem;margin-top:20px}@media(max-width:600px){.levels{grid-template-columns:1fr}.book{grid-template-columns:105px 1fr;gap:13px;padding:12px}.answers{grid-template-columns:1fr}.title{font-size:1.15rem}}
+</style></head>
+<body><main>
+<header><h1>אתגר קטגוריות הספרים</h1><p class="muted">שאלון אינטראקטיבי לתרגול סיווג ספרים · סיפור חוזר</p><p>בחרו רמת קושי, עיינו בפרטי הספר ובכריכה, וסמנו את הקטגוריה המתאימה.</p></header>
+<section id="home"><h2>בחירת רמת קושי</h2><div class="levels">
+<div class="level"><b>רמה 1 – קל</b><small>קטגוריות ברורות</small><button onclick="start(0)">התחלה</button></div>
+<div class="level"><b>רמה 2 – בינוני</b><small>הבחנה בין קטגוריות דומות</small><button onclick="start(1)">התחלה</button></div>
+<div class="level"><b>רמה 3 – קשה</b><small>ספרים בעלי מאפיינים מורכבים</small><button onclick="start(2)">התחלה</button></div>
+</div><p class="muted">בכל רמה שלוש שאלות. לאחר בחירת תשובה יופיע משוב והסבר.</p></section>
+<section id="quiz" class="hidden"><div class="meta"><span id="level" class="pill"></span><span id="count" class="muted"></span><span id="points" class="pill"></span></div><div class="bar"><span id="progress"></span></div>
+<div class="book"><div><img id="cover" class="cover" alt="כריכת הספר"><small class="muted">כריכה לדוגמה</small></div><div><div id="book" class="title"></div><div id="author" class="muted"></div><p><b>מהי הקטגוריה המתאימה ביותר לספר?</b></p><div id="answers" class="answers"></div><div id="feedback" class="feedback hidden" aria-live="polite"></div></div></div>
+<div class="actions"><button class="secondary" onclick="home()">בחירת רמה אחרת</button><button id="next" onclick="next()" disabled>לשאלה הבאה</button></div></section>
+<section id="result" class="hidden result"><h2>סיימתם את הרמה!</h2><div id="score" class="score"></div><p id="message"></p><div class="actions" style="justify-content:center"><button onclick="start(levelNow)">משחק חוזר</button><button class="secondary" onclick="home()">בחירת רמה אחרת</button></div></section>
+<footer>תמונות הכריכות נטענות ממאגר Open Library; ייתכן שהמהדורה שונה מזו שבשאלה.</footer>
+</main>
+<script>
+const data=[
+[
+["האי ברחוב הציפורים","אורי אורלב","https://covers.openlibrary.org/b/isbn/978037448-M.jpg","ספרות ילדים ונוער",["ספרות ילדים ונוער","מתח ובלש","ספרי היסטוריה"],"זהו רומן המיועד בעיקר לקוראים צעירים, העוסק בילד בתקופת השואה."],
+["רצח בדרך בית לחם","בתיה גור","https://covers.openlibrary.org/b/title/Murder%20on%20a%20Kibbutz-M.jpg","מתח ובלש",["רומן רומנטי","מתח ובלש","ספרות ילדים ונוער"],"זהו ספר בלשי שבמרכזו חקירת רצח."],
+["הארי פוטר ואבן החכמים","ג׳יי קיי רולינג","https://covers.openlibrary.org/b/isbn/9780545582889-M.jpg","פנטזיה",["ביוגרפיה","פנטזיה","ספרי מדע"],"הספר כולל קסמים, עולם דמיוני ויצורים קסומים."]
+],
+[
+["יומנה של אנה פרנק","אנה פרנק","https://covers.openlibrary.org/b/isbn/9780553296983-M.jpg","שואה ותיעוד",["רומן היסטורי","שואה ותיעוד","ספרות ילדים ונוער"],"זהו יומן אישי שנכתב בתקופת השואה ומתעד את חייה של אנה פרנק."],
+["אבא ארך רגליים","ג׳ין ובסטר","https://covers.openlibrary.org/b/isbn/9780486290277-M.jpg","רומן",["ספר מתח","רומן","ספר עיון"],"זהו רומן המסופר באמצעות מכתבים ועוסק בחייה של צעירה."],
+["ההוביט","ג׳. ר. ר. טולקין","https://covers.openlibrary.org/b/isbn/9780547928227-M.jpg","פנטזיה",["ספרות ריאליסטית","ספרי היסטוריה","פנטזיה"],"הספר מתרחש בעולם דמיוני ובו גמדים, דרקונים והרפתקאות."]
+],
+[
+["רבקה","דפנה דה מורייה","https://covers.openlibrary.org/b/isbn/9780380730407-M.jpg","מתח ומסתורין",["רומן רומנטי","מתח ומסתורין","ספרות ילדים ונוער"],"למרות שיש בספר סיפור אהבה, העלילה מתמקדת במסתורין, סודות ומתח."],
+["העולם של אתמול","שטפן צווייג","https://covers.openlibrary.org/b/isbn/9780805207541-M.jpg","אוטוביוגרפיה וזיכרונות",["רומן היסטורי","אוטוביוגרפיה וזיכרונות","ספר מתח"],"זהו ספר זיכרונות שבו המחבר מתאר את חייו ואת אירועי התקופה שבה חי."],
+["הנסיך הקטן","אנטואן דה סנט-אכזופרי","https://covers.openlibrary.org/b/isbn/9780156012195-M.jpg","ספרות ילדים וקלאסיקה",["ספרי מדע","ספרות ילדים וקלאסיקה","ספר מתח"],"זהו ספר קלאסי המיועד גם לילדים וגם למבוגרים, עם מסרים פילוסופיים."]
+]];
+let levelNow=0,index=0,points=0,done=false;
+function el(id){return document.getElementById(id)}
+function start(n){levelNow=n;index=0;points=0;el('home').classList.add('hidden');el('result').classList.add('hidden');el('quiz').classList.remove('hidden');render()}
+function render(){done=false;const q=data[levelNow][index];el('level').textContent=['רמה 1 – קל','רמה 2 – בינוני','רמה 3 – קשה'][levelNow];el('count').textContent='שאלה '+(index+1)+' מתוך 3';el('points').textContent='ניקוד: '+points;el('progress').style.width=((index+1)/3*100)+'%';el('book').textContent=q[0];el('author').textContent='מאת: '+q[1];const img=el('cover');img.onerror=()=>{img.onerror=null;img.src='https://placehold.co/300x450/f0f3f0/365744?text='+encodeURIComponent(q[0])};img.src=q[2];el('feedback').className='feedback hidden';el('feedback').textContent='';el('next').disabled=true;el('next').textContent=index===2?'לתוצאות הרמה':'לשאלה הבאה';el('answers').innerHTML='';q[4].forEach((a,i)=>{const b=document.createElement('button');b.className='answer';b.textContent=['א','ב','ג'][i]+'. '+a;b.onclick=()=>choose(a,b);el('answers').appendChild(b)})}
+function choose(a,button){if(done)return;done=true;const q=data[levelNow][index];[...el('answers').children].forEach(b=>{b.disabled=true;if(b.textContent.slice(3)===q[3])b.classList.add('correct')});const f=el('feedback');if(a===q[3]){points++;f.className='feedback good';f.innerHTML='<b>תשובה נכונה!</b> '+q[5]}else{button.classList.add('wrong');f.className='feedback bad';f.innerHTML='<b>התשובה הנכונה: '+q[3]+'</b><br>'+q[5]}el('points').textContent='ניקוד: '+points;el('next').disabled=false}
+function next(){if(!done)return;if(index<2){index++;render();return}el('quiz').classList.add('hidden');el('result').classList.remove('hidden');el('score').textContent=points+'/3';el('message').textContent=points===3?'מצוין! כל התשובות נכונות.':points===2?'כל הכבוד! כמעט כל התשובות נכונות.':'תודה על התרגול. אפשר לשחק שוב וללמוד מההסברים.'}
+function home(){el('quiz').classList.add('hidden');el('result').classList.add('hidden');el('home').classList.remove('hidden')}
+</script></body></html>
