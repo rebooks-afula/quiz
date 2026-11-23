@@ -102,21 +102,28 @@ const data=[
 {book:"הנסיך הקטן",author:"אנטואן דה סנט-אכזופרי",cover:"https://images.e-vrit.co.il/cdn-cgi/image/width=576,format=auto,quality=85/Images/Products/AmOvedMasters/hanasichhkatan_master.jpg",correct:"ספרות ילדים וקלאסיקה",options:["ספרי מדע","ספרות ילדים וקלאסיקה","ספר מתח"],synopsis:"טייס שמטוסו התרסק במדבר סהרה פוגש ילד מסתורי מכוכב אחר. הנסיך הקטן מספר לו על מסעותיו בין כוכבים ועל הדמויות שפגש, ומתוך שיחותיהם עולים רעיונות על חברות, אהבה, אחריות ועל הדרך שבה מבוגרים וילדים רואים את העולם.",reason:"זהו סיפור ספרותי קלאסי שנכתב בשפה נגישה ומוכר כספר לילדים, אך כולל גם רעיונות עמוקים שמדברים למבוגרים. לכן הוא מסווג כספרות ילדים וקלאסיקה."}
 ]];
 let levelNow=0,index=0,points=0,done=false,quizModeAll=false,questions=[],mistakes=[],correctCategories=new Set(),playerName="שחקן",runSaved=false;
+const SUPABASE_URL="https://ahfsyrsgpjgtsepivydr.supabase.co";
+const SUPABASE_KEY="sb_publishable_CBUIOgQVW6fdIefmDCaeFw_IPg0JJxW";
 const LEADERBOARD_KEY="sipurChozerLeaderboardV1";
 function readLeaderboard(){try{return JSON.parse(localStorage.getItem(LEADERBOARD_KEY)||"[]")}catch(e){return []}}
-function renderLeaderboard(){
+async function renderLeaderboard(){
  const list=el("leaderboardList");if(!list)return;list.textContent="";
- const rows=readLeaderboard().sort((a,b)=>(b.percent-a.percent)||(b.points-a.points)||(b.total-a.total)).slice(0,10);
- if(!rows.length){const li=document.createElement("li");li.className="muted";li.textContent="עדיין אין תוצאות. היו הראשונים לשחק!";list.appendChild(li);return}
- rows.forEach((row,i)=>{const li=document.createElement("li");const who=document.createElement("span");who.textContent=(i+1)+". "+row.name+" · "+row.mode;const score=document.createElement("span");score.className="entry-score";score.textContent=row.points+"/"+row.total+" ("+row.percent+"%)";li.append(who,score);list.appendChild(li)})
+ try{
+  const response=await fetch(SUPABASE_URL+"/rest/v1/quiz_scores?select=player_name,points,total,percent,mode&order=percent.desc,points.desc,created_at.asc&limit=10",{headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY}});
+  if(!response.ok)throw new Error("Supabase "+response.status);
+  const rows=await response.json();
+  if(!rows.length){const li=document.createElement("li");li.className="muted";li.textContent="עדיין אין תוצאות. היו הראשונים לשחק!";list.appendChild(li);return}
+  rows.forEach((row,i)=>{const li=document.createElement("li");const who=document.createElement("span");who.textContent=(i+1)+". "+row.player_name+" · "+row.mode;const score=document.createElement("span");score.className="entry-score";score.textContent=row.points+"/"+row.total+" ("+row.percent+"%)";li.append(who,score);list.appendChild(li)})
+ }catch(error){const li=document.createElement("li");li.className="muted";li.textContent="לוח הדירוג המשותף עדיין לא זמין. יש להשלים את הגדרת טבלת Supabase.";list.appendChild(li);console.error(error)}
 }
-function saveResult(){
+async function saveResult(){
  if(runSaved)return;runSaved=true;
  const total=questions.length,percent=Math.round(points/total*100);
- const rows=readLeaderboard();rows.push({name:playerName,points,total,percent,mode:quizModeAll?"כל הרמות":("רמה "+(levelNow+1)),date:new Date().toISOString()});
- rows.sort((a,b)=>(b.percent-a.percent)||(b.points-a.points)||(b.total-a.total));
- try{localStorage.setItem(LEADERBOARD_KEY,JSON.stringify(rows.slice(0,50)))}catch(e){}
- renderLeaderboard();
+ try{
+  const response=await fetch(SUPABASE_URL+"/rest/v1/quiz_scores",{method:"POST",headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({player_name:playerName,points,total,percent,mode:quizModeAll?"כל הרמות":("רמה "+(levelNow+1))})});
+  if(!response.ok)throw new Error("Supabase "+response.status);
+  await renderLeaderboard();
+ }catch(error){console.error(error);const list=el("leaderboardList");if(list){list.textContent="לא הצלחנו לשמור את התוצאה. בדקו את הגדרות Supabase.";}}
 }
 function clearLeaderboard(){if(!confirm("למחוק את כל התוצאות השמורות במכשיר הזה?"))return;try{localStorage.removeItem(LEADERBOARD_KEY)}catch(e){}renderLeaderboard()}
 function capturePlayerName(){const field=el("playerName");playerName=(field&&field.value.trim())||"שחקן";playerName=playerName.slice(0,24)}
