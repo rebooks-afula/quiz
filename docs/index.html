@@ -122,8 +122,7 @@ async function saveResult(){
  try{
   const response=await fetch(SUPABASE_URL+"/rest/v1/quiz_scores",{method:"POST",headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({player_name:playerName,points,total,percent,mode:quizModeAll?"כל הרמות":("רמה "+(levelNow+1))})});
   if(!response.ok)throw new Error("Supabase "+response.status);
-  await window.start=start; window.startAll=startAll; window.next=next; window.home=home;
-renderLeaderboard();
+  await renderLeaderboard();
  }catch(error){console.error(error);const list=el("leaderboardList");if(list){list.textContent="לא הצלחנו לשמור את התוצאה. בדקו את הגדרות Supabase.";}}
 }
 function clearLeaderboard(){if(!confirm("למחוק את כל התוצאות השמורות במכשיר הזה?"))return;try{localStorage.removeItem(LEADERBOARD_KEY)}catch(e){}renderLeaderboard()}
@@ -137,6 +136,7 @@ function render(){done=false;const q=questions[index];el('level').textContent=qu
 function choose(a,button){if(done)return;done=true;const q=questions[index];[...el('answers').children].forEach(b=>{b.disabled=true;if(b.textContent.slice(3)===q.correct)b.classList.add('correct')});const f=el('feedback');if(a===q.correct){points++;correctCategories.add(q.correct);f.className='feedback good';f.innerHTML='<b>תשובה נכונה!</b><br>'+q.reason}else{button.classList.add('wrong');mistakes.push({book:q.book,correct:q.correct});f.className='feedback bad';f.innerHTML='<b>התשובה הנכונה: '+q.correct+'</b><br>'+q.reason}el('points').textContent='ניקוד: '+points;el('next').disabled=false}
 function next(){if(!done)return;if(index<questions.length-1){index++;render();return}el('quiz').classList.add('hidden');el('result').classList.remove('hidden');saveResult();el('resultPlayer').textContent='שחקן: '+playerName;el('resultTitle').textContent=quizModeAll?'סיימתם את השאלון המלא!':'סיימתם את הרמה!';el('score').textContent=points+'/'+questions.length;el('message').textContent=points===questions.length?'עניתם נכון על כל השאלות.':points>=Math.ceil(questions.length*.7)?'יש לכם בסיס טוב, ויש עוד כמה נושאים לחזק.':'תודה על התרגול. עברו על ההסברים ונסו שוב.';const strong=[...correctCategories];el('strengths').innerHTML='<b>החוזקות שלכם</b><br>'+(strong.length?'זיהיתם נכון ספרים בקטגוריות: '+strong.join(', ')+'.':'עדיין אין קטגוריה שזוהתה נכון. כדאי להיעזר בהסברים ולנסות שוב.');const weak=mistakes.map(m=>m.book+' – כדאי לתרגל את הקטגוריה '+m.correct);el('weaknesses').innerHTML='<b>נושאים שכדאי לחזק</b><br>'+(weak.length?weak.join('<br>'):'לא נמצאו טעויות.');}
 function home(){el('quiz').classList.add('hidden');el('result').classList.add('hidden');el('home').classList.remove('hidden');renderLeaderboard()}
+window.start=start; window.startAll=startAll; window.next=next; window.home=home; window.renderLeaderboard=renderLeaderboard;
 renderLeaderboard();
 if ("serviceWorker" in navigator) { window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(console.error)); }
 </script></body></html>
