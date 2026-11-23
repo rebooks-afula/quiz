@@ -5,6 +5,55 @@
 <title>אתגר קטגוריות הספרים | סיפור חוזר</title>
 <style>
 *{box-sizing:border-box}body{margin:0;padding:20px;background:#f3f7f3;color:#24352b;font-family:Arial,sans-serif;line-height:1.55}main{max-width:900px;margin:24px auto;background:#fff;padding:clamp(18px,4vw,36px);border-radius:18px;box-shadow:0 8px 28px #173c2412}header{text-align:center;border-bottom:1px solid #dbe5dd;padding-bottom:18px;margin-bottom:22px}h1{margin:0;color:#216b45}.muted{color:#68776e}.levels{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px 0}.level{border:1px solid #dbe5dd;border-radius:12px;padding:16px;text-align:center}.level small{display:block;color:#68776e}.level button,button{border:0;border-radius:9px;padding:12px 17px;background:#216b45;color:white;font-size:1rem;font-weight:bold;cursor:pointer}.level button{width:100%;margin-top:10px}.meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}.pill{background:#e8f3ec;color:#216b45;padding:5px 12px;border-radius:30px}.bar{height:8px;background:#e7eee8;border-radius:9px;margin:12px 0 22px;overflow:hidden}.bar span{display:block;height:100%;background:#27804f}.book{display:grid;grid-template-columns:250px 1fr;gap:22px;border:1px solid #dbe5dd;border-radius:14px;padding:18px}.book>div:first-child{min-height:370px;display:flex;flex-direction:column;align-items:stretch}.book>div:first-child .cover{flex:1;min-height:340px}.cover{display:block;width:100%;height:340px;min-height:340px;aspect-ratio:2/3;object-fit:contain;object-position:center;background:#f0f3f0;border-radius:8px}.title{font-size:1.45rem;font-weight:bold}.synopsis{background:#f5f8f5;border-right:4px solid #8aaf96;border-radius:8px;padding:10px 13px;margin:12px 0 16px}.synopsis p{margin:4px 0 0}.answers{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.answer{background:#fff;color:#24352b;border:1px solid #dbe5dd;text-align:right;font-weight:normal;min-height:52px}.answer.correct{background:#e5f4e8;border:2px solid #348451}.answer.wrong{background:#fff0ef;border:2px solid #c75a54}.answer:disabled{cursor:default}.feedback{padding:14px;border-radius:10px;background:#f1f5f1;margin-top:14px}.good{background:#e8f5eb}.bad{background:#fff0ef}.actions{display:flex;justify-content:space-between;gap:10px;margin-top:18px;flex-wrap:wrap}.secondary{background:#edf2ee;color:#24352b;border:1px solid #dbe5dd}.hidden{display:none}.result{text-align:center;padding:25px}.score{font-size:3rem;color:#216b45;font-weight:bold}footer{text-align:center;color:#68776e;font-size:.85rem;margin-top:20px}@media(max-width:620px){.levels{grid-template-columns:1fr}.book{grid-template-columns:145px 1fr;gap:13px;padding:12px}.book>div:first-child{min-height:230px}.book>div:first-child .cover{height:210px;min-height:210px}.cover{height:210px;min-height:210px}.answers{grid-template-columns:1fr}.title{font-size:1.15rem}}
+
+/* Mobile-first refinements: comfortable RTL layout */
+html{direction:rtl;scroll-behavior:smooth}
+body{direction:rtl;text-align:right}
+button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+@media(max-width:640px){
+  body{padding:0;background:#f3f7f3;font-size:16px;line-height:1.65}
+  main{width:100%;max-width:none;margin:0 auto;padding:18px 14px calc(24px + env(safe-area-inset-bottom));border-radius:0;min-height:100svh;box-shadow:none}
+  header{padding:12px 2px 18px;margin-bottom:20px}
+  h1{font-size:1.55rem;line-height:1.3}
+  header p{font-size:.98rem}
+  h2{font-size:1.25rem}
+  .levels{grid-template-columns:1fr;gap:12px;margin:18px 0}
+  .level{padding:16px;text-align:right;border-radius:14px}
+  .level b{font-size:1.08rem}
+  .level small{margin-top:3px}
+  button,.level button{min-height:52px;width:100%;padding:13px 16px;font-size:1rem;border-radius:12px}
+  #home>div[style*="text-align:center"]{margin-top:20px!important}
+  .meta{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .meta #level{grid-column:1/-1}
+  .pill{display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:5px 10px;font-size:.9rem}
+  .bar{margin:12px 0 16px;height:9px}
+  .book{display:flex;flex-direction:column;gap:14px;padding:14px;border-radius:16px}
+  .book>div:first-child{min-height:0;align-items:center}
+  .book>div:first-child .cover,.cover{width:auto;max-width:min(72vw,230px);height:auto;min-height:0;max-height:340px;aspect-ratio:2/3;object-fit:contain;margin:0 auto}
+  .book>div:first-child small{text-align:center;margin-top:6px}
+  .book>div:last-child{width:100%}
+  .title{font-size:1.3rem;line-height:1.35}
+  #author{margin-top:3px}
+  .synopsis{margin:12px 0;padding:12px;border-radius:12px}
+  .answers{grid-template-columns:1fr;gap:9px;margin-top:10px}
+  .answer{text-align:right;min-height:56px;padding:14px 15px;font-size:1rem}
+  .feedback{padding:13px;border-radius:12px;line-height:1.65}
+  .actions{display:flex;flex-direction:column-reverse;gap:9px;margin-top:16px}
+  .actions button{width:100%}
+  .result{padding:18px 4px}
+  .score{font-size:2.7rem}
+  footer{padding:8px 4px 0}
+}
+@media(min-width:390px) and (max-width:640px){
+  main{padding-left:18px;padding-right:18px}
+}
+@media(max-width:360px){
+  main{padding-left:11px;padding-right:11px}
+  .book{padding:11px}
+  .book>div:first-child .cover,.cover{max-width:68vw;max-height:300px}
+  .title{font-size:1.18rem}
+}
+
 </style><meta name="theme-color" content="#073b56">
 <link rel="icon" type="image/svg+xml" href="./icon.svg">
 <link rel="manifest" href="./manifest.webmanifest">
