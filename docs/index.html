@@ -176,7 +176,7 @@ async function loadFullBank(){
  const response=await fetch('./questions-41.json',{cache:'no-store'});
  if(!response.ok)throw new Error('load failed');
  const payload=await response.json();
- fullBank=payload.questions.map(q=>({book:q.book,author:q.author,cover:'',coverSource:q.coverSource||'https://www.e-vrit.co.il/search?q='+encodeURIComponent(q.book),correct:q.category,options:q.options,synopsis:q.synopsis,reason:q.reason,difficulty:q.difficulty,category:q.category}));
+ fullBank=payload.questions.map(q=>({book:q.book,author:q.author,cover:q.coverUrl||'',coverSource:q.coverSource||'https://www.e-vrit.co.il/search?q='+encodeURIComponent(q.book),correct:q.category,options:q.options,synopsis:q.synopsis,reason:q.reason,difficulty:q.difficulty,category:q.category}));
  return fullBank;
 }
 
