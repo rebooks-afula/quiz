@@ -109,47 +109,68 @@ const data=[
 let levelNow=0,index=0,points=0,done=false,quizModeAll=false,questions=[],mistakes=[],correctCategories=new Set(),playerName="שחקן",runSaved=false;
 let fullBank=[];
 const coverCache=new Map();
-function coverLanguages(q){if(q.category.startsWith('אנגלית'))return ['en'];if(q.category==='רוסית')return ['ru'];return ['iw','he'];}
-function normalizeBookText(value){return (value||'').toLowerCase().normalize('NFKC').replace(/[״׳"'’‘:!?.,()־–—]/g,' ').replace(/\s+/g,' ').trim()}
+function coverLanguages(q){if((q.category||'').startsWith('אנגלית'))return ['en'];if(q.category==='רוסית')return ['ru'];return ['he','iw','heb'];}
+function normalizeBookText(value){return (value||'').toLowerCase().normalize('NFKC').replace(/[״׳"'’‘:!?.,()־–—]/g,' ').replace(/\\s+/g,' ').trim()}
+function titleLooksRight(found,target){
+ const a=normalizeBookText(found),b=normalizeBookText(target);
+ if(!a||!b)return false;
+ if(a===b||a.includes(b)||b.includes(a))return true;
+ const words=b.split(' ').filter(w=>w.length>1);
+ if(!words.length)return false;
+ const matches=words.filter(w=>a.includes(w)).length;
+ return matches/words.length>=0.75;
+}
 async function findBookCovers(q){
  const key=q.book+'|'+q.author;
  if(coverCache.has(key))return coverCache.get(key);
- const langs=coverLanguages(q),target=normalizeBookText(q.book),author=normalizeBookText(q.author);
- const queries=[q.book+' '+q.author,q.book];
- const candidates=[];
- for(const query of queries){
-  for(const lang of [...langs,'']){
-   try{
-    const params=new URLSearchParams({q:query,maxResults:'20',printType:'books'});
-    if(lang)params.set('langRestrict',lang);
-    const response=await fetch('https://www.googleapis.com/books/v1/volumes?'+params.toString());
-    if(!response.ok)continue;
+ const langs=coverLanguages(q),candidates=[];
+ const add=url=>{if(url&&!candidates.includes(url))candidates.push(url.replace(/^http:/,'https:'))};
+ // Google Books: allow a title-confirmed result even when author transliteration differs.
+ for(const query of [q.book+' '+q.author,q.book]){
+  try{
+   const params=new URLSearchParams({q:query,maxResults:'20',printType:'books'});
+   const response=await fetch('https://www.googleapis.com/books/v1/volumes?'+params.toString(),{signal:AbortSignal.timeout(8000)});
+   if(response.ok){
     const data=await response.json();
     for(const item of (data.items||[])){
-     const v=item.volumeInfo||{},title=normalizeBookText(v.title),authors=(v.authors||[]).map(normalizeBookText);
-     const titleMatch=title===target||title.includes(target)||target.includes(title);
-     const authorMatch=!authors.length||authors.some(a=>a.includes(author.split(' ')[0])||author.includes(a.split(' ')[0]));
-     const languageMatch=!v.language||langs.includes(v.language)||(langs.includes('iw')&&v.language==='he');
-     if(!v.imageLinks||!titleMatch||!authorMatch||!languageMatch)continue;
-     const links=v.imageLinks;
-     for(const raw of [links.extraLarge,links.large,links.medium,links.thumbnail,links.smallThumbnail]){
-      if(raw){const url=raw.replace(/^http:/,'https:').replace('&edge=curl','');if(!candidates.includes(url))candidates.push(url)}
-     }
+     const v=item.volumeInfo||{};
+     if(!titleLooksRight(v.title,q.book))continue;
+     if(v.language&&!langs.includes(v.language)&&!(langs.includes('he')&&v.language==='iw'))continue;
+     const links=v.imageLinks||{};
+     for(const raw of [links.extraLarge,links.large,links.medium,links.small,links.thumbnail,links.smallThumbnail])add(raw);
     }
-   }catch(error){console.warn('Google Books search failed',q.book,error)}
-   if(candidates.length>=5)break;
+   }
+  }catch(error){console.warn('Google Books search failed',q.book,error)}
+  if(candidates.length>=4)break;
+ }
+ // Always add Open Library candidates as a real fallback, not only when Google returns zero URLs.
+ try{
+  const params=new URLSearchParams({title:q.book,author:q.author,limit:'25',fields:'title,author_name,cover_i,language'});
+  const response=await fetch('https://openlibrary.org/search.json?'+params.toString(),{signal:AbortSignal.timeout(8000)});
+  if(response.ok){
+   const data=await response.json();
+   for(const d of data.docs||[]){
+    if(!d.cover_i||!titleLooksRight(d.title,q.book))continue;
+    if(d.language&&d.language.length&&!d.language.some(code=>langs.includes(code)))continue;
+    add('https://covers.openlibrary.org/b/id/'+d.cover_i+'-L.jpg');
+    add('https://covers.openlibrary.org/b/id/'+d.cover_i+'-M.jpg');
+   }
   }
-  if(candidates.length>=5)break;
- }
- if(!candidates.length){
-  try{
-   const params=new URLSearchParams({q:q.book+' '+q.author,limit:'30'});
-   const response=await fetch('https://openlibrary.org/search.json?'+params.toString());
-   if(response.ok){const data=await response.json();for(const d of data.docs||[]){if(!d.cover_i)continue;const langOK=!d.language||d.language.some(code=>langs.includes(code)|| (langs.includes('iw')&&code==='heb'));if(langOK)candidates.push('https://covers.openlibrary.org/b/id/'+d.cover_i+'-L.jpg');}}
-  }catch(error){console.warn('Open Library search failed',q.book,error)}
- }
- coverCache.set(key,candidates);
- return candidates;
+ }catch(error){console.warn('Open Library search failed',q.book,error)}
+ const result=candidates;
+ coverCache.set(key,result);
+ return result;
+}
+async function probeCover(url){
+ return await new Promise(resolve=>{
+  const probe=new Image();let finished=false;
+  const done=ok=>{if(finished)return;finished=true;clearTimeout(timer);resolve(ok)};
+  const timer=setTimeout(()=>done(false),7000);
+  probe.onload=()=>done(probe.naturalWidth>40&&probe.naturalHeight>40);
+  probe.onerror=()=>done(false);
+  probe.referrerPolicy='no-referrer';
+  probe.src=url;
+ });
 }
 async function loadFullBank(){
  const response=await fetch('./questions-41.json',{cache:'no-store'});
@@ -190,7 +211,7 @@ function randomQuestions(pool,count=3){const shuffled=pool.slice();for(let i=shu
 async function start(n){capturePlayerName();try{await loadFullBank()}catch(e){alert('לא ניתן לטעון את השאלון. נסו לרענן את הדף.');return}levelNow=n;quizModeAll=false;questions=fullBank.filter(q=>q.difficulty===n+1);resetQuiz()}
 async function startAll(){capturePlayerName();try{await loadFullBank()}catch(e){alert('לא ניתן לטעון את השאלון. נסו לרענן את הדף.');return}levelNow=0;quizModeAll=true;questions=fullBank.slice().sort((a,b)=>a.difficulty-b.difficulty).map(q=>({...q,level:['רמה 1 – קל','רמה 2 – בינוני','רמה 3 – קשה'][q.difficulty-1]}));resetQuiz()}
 function resetQuiz(){runSaved=false;index=0;points=0;mistakes=[];correctCategories=new Set();el('home').classList.add('hidden');el('result').classList.add('hidden');el('quiz').classList.remove('hidden');render()}
-function render(){done=false;const q=questions[index];el('level').textContent=quizModeAll?q.level:['רמה 1 – קל','רמה 2 – בינוני','רמה 3 – קשה'][levelNow];el('count').textContent='שאלה '+(index+1)+' מתוך '+questions.length;el('points').textContent='ניקוד: '+points;el('progress').style.width=((index+1)/questions.length*100)+'%';el('book').textContent=q.book;el('author').textContent='מאת: '+q.author;el('synopsis').textContent=q.synopsis;const img=el('cover');const currentBook=q.book;img.onerror=()=>{img.onerror=null;img.removeAttribute('src');img.alt='לא נמצאה כריכה זמינה לספר '+q.book};if(q.cover)img.src=q.cover;else img.removeAttribute('src');findBookCovers(q).then(async urls=>{if(el('book').textContent!==currentBook)return;let loaded=false;for(const url of urls){const ok=await new Promise(resolve=>{const probe=new Image();probe.onload=()=>resolve(true);probe.onerror=()=>resolve(false);probe.src=url});if(ok&&el('book').textContent===currentBook){q.cover=url;img.alt='כריכת '+currentBook;img.src=url;loaded=true;break}}if(!loaded){img.removeAttribute('src');img.alt='לא נמצאה כריכה תקינה לספר '+currentBook}}).catch(error=>{img.removeAttribute('src');console.warn('Cover lookup failed:',currentBook,error)});const source=el('coverSource');if(source){if(q.coverSource){source.href=q.coverSource;source.classList.remove('hidden')}else{source.removeAttribute('href');source.classList.add('hidden')}}el('feedback').className='feedback hidden';el('feedback').textContent='';el('next').disabled=true;el('next').textContent=index===questions.length-1?'לתוצאות הסופיות':'לשאלה הבאה';el('answers').innerHTML='';randomQuestions(q.options,3).forEach((a,i)=>{const b=document.createElement('button');b.className='answer';b.textContent=['א','ב','ג'][i]+'. '+a;b.dataset.answer=a;el('answers').appendChild(b)})}
+function render(){done=false;const q=questions[index];el('level').textContent=quizModeAll?q.level:['רמה 1 – קל','רמה 2 – בינוני','רמה 3 – קשה'][levelNow];el('count').textContent='שאלה '+(index+1)+' מתוך '+questions.length;el('points').textContent='ניקוד: '+points;el('progress').style.width=((index+1)/questions.length*100)+'%';el('book').textContent=q.book;el('author').textContent='מאת: '+q.author;el('synopsis').textContent=q.synopsis;const img=el('cover');const currentBook=q.book;img.referrerPolicy='no-referrer';img.onerror=()=>{img.onerror=null;img.removeAttribute('src');img.alt='לא נמצאה כריכה זמינה לספר '+q.book};if(q.cover)img.src=q.cover;else img.removeAttribute('src');findBookCovers(q).then(async urls=>{if(el('book').textContent!==currentBook)return;let loaded=false;for(const url of urls){const ok=await probeCover(url);if(ok&&el('book').textContent===currentBook){q.cover=url;img.alt='כריכת '+currentBook;img.src=url;loaded=true;break}}if(!loaded){img.removeAttribute('src');img.alt='לא נמצאה כריכה תקינה לספר '+currentBook}}).catch(error=>{img.removeAttribute('src');console.warn('Cover lookup failed:',currentBook,error)});const source=el('coverSource');if(source){if(q.coverSource){source.href=q.coverSource;source.classList.remove('hidden')}else{source.removeAttribute('href');source.classList.add('hidden')}}el('feedback').className='feedback hidden';el('feedback').textContent='';el('next').disabled=true;el('next').textContent=index===questions.length-1?'לתוצאות הסופיות':'לשאלה הבאה';el('answers').innerHTML='';randomQuestions(q.options,3).forEach((a,i)=>{const b=document.createElement('button');b.className='answer';b.textContent=['א','ב','ג'][i]+'. '+a;b.dataset.answer=a;el('answers').appendChild(b)})}
 function choose(a,button){if(done)return;done=true;const q=questions[index];[...el('answers').children].forEach(b=>{b.disabled=true;if(b.textContent.slice(3)===q.correct)b.classList.add('correct')});const f=el('feedback');if(a===q.correct){points++;correctCategories.add(q.correct);f.className='feedback good';f.innerHTML='<b>תשובה נכונה!</b><br>'+q.reason}else{button.classList.add('wrong');mistakes.push({book:q.book,correct:q.correct});f.className='feedback bad';f.innerHTML='<b>התשובה הנכונה: '+q.correct+'</b><br>'+q.reason}el('points').textContent='ניקוד: '+points;el('next').disabled=false}
 function next(){if(!done)return;if(index<questions.length-1){index++;render();return}el('quiz').classList.add('hidden');el('result').classList.remove('hidden');saveResult();el('resultPlayer').textContent='שחקן: '+playerName;el('resultTitle').textContent=quizModeAll?'סיימתם את השאלון המלא!':'סיימתם את הרמה!';el('score').textContent=points+'/'+questions.length;el('message').textContent=points===questions.length?'עניתם נכון על כל השאלות.':points>=Math.ceil(questions.length*.7)?'יש לכם בסיס טוב, ויש עוד כמה נושאים לחזק.':'תודה על התרגול. עברו על ההסברים ונסו שוב.';const strong=[...correctCategories];el('strengths').innerHTML='<b>החוזקות שלכם</b><br>'+(strong.length?'זיהיתם נכון ספרים בקטגוריות: '+strong.join(', ')+'.':'עדיין אין קטגוריה שזוהתה נכון. כדאי להיעזר בהסברים ולנסות שוב.');const weak=mistakes.map(m=>m.book+' – כדאי לתרגל את הקטגוריה '+m.correct);el('weaknesses').innerHTML='<b>נושאים שכדאי לחזק</b><br>'+(weak.length?weak.join('<br>'):'לא נמצאו טעויות.');}
 function home(){el('quiz').classList.add('hidden');el('result').classList.add('hidden');el('home').classList.remove('hidden');renderLeaderboard()}
