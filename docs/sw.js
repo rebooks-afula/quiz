@@ -1,4 +1,4 @@
-const CACHE_NAME = "sipur-chozer-pwa-v8";
+const CACHE_NAME = "sipur-chozer-pwa-v9";
 const APP_FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./questions-41.json"];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_FILES)));
