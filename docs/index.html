@@ -79,10 +79,10 @@ button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 <div class="level"><b>רמה 3 – קשה</b><small>ספרים בעלי מאפיינים מורכבים</small><button type="button" data-action="start-2">התחלת הרמה</button></div>
 </div><p class="muted">השאלון המלא כולל 41 שאלות — ספר אחד לכל קטגוריה. בכל רמה מוצגות כל השאלות שהוקצו לה. לאחר בחירת תשובה יופיע משוב והסבר.</p><div style="text-align:center;margin-top:18px"><button type="button" data-action="start-all">התחלת השאלון המלא – 41 שאלות</button></div><div class="leaderboard" aria-live="polite"><h2>לוח הדירוג המשותף</h2><p class="muted">עשרת השחקנים המובילים</p><ol id="leaderboardList"><li class="muted">טוען תוצאות...</li></ol><button class="secondary" type="button" data-action="refresh-board">רענון רשימת הניקוד</button></div></section>
 <section id="quiz" class="hidden"><div class="meta"><span id="level" class="pill"></span><span id="count" class="muted"></span><span id="points" class="pill"></span></div><div class="bar"><span id="progress"></span></div>
-<div class="book"><div><img id="cover" class="cover" alt="כריכת הספר"><small class="muted">תמונה זמנית · <a id="coverSource" class="hidden" target="_blank" rel="noopener noreferrer">חיפוש הספר באתר עברית</a></small></div><div><div id="book" class="title"></div><div id="author" class="muted"></div><div class="synopsis"><b>תקציר הספר</b><p id="synopsis"></p></div><p><b>מהי הקטגוריה המתאימה ביותר לספר?</b></p><div id="answers" class="answers"></div><div id="feedback" class="feedback hidden" aria-live="polite"></div></div></div>
+<div class="book"><div><img id="cover" class="cover" alt="כריכת הספר"><small class="muted">כריכת הספר · <a id="coverSource" class="hidden" target="_blank" rel="noopener noreferrer">חיפוש הספר באתר עברית</a></small></div><div><div id="book" class="title"></div><div id="author" class="muted"></div><div class="synopsis"><b>תקציר הספר</b><p id="synopsis"></p></div><p><b>מהי הקטגוריה המתאימה ביותר לספר?</b></p><div id="answers" class="answers"></div><div id="feedback" class="feedback hidden" aria-live="polite"></div></div></div>
 <div class="actions"><button class="secondary" type="button" data-action="home">בחירת רמה אחרת</button><button id="next" type="button" data-action="next" disabled>לשאלה הבאה</button></div></section>
 <section id="result" class="hidden result"><h2 id="resultTitle">סיימתם את הרמה!</h2><p id="resultPlayer"></p><div id="score" class="score"></div><p id="message"></p><div id="strengths" class="feedback good" style="text-align:right"></div><div id="weaknesses" class="feedback bad" style="text-align:right"></div><div class="actions" style="justify-content:center"><button type="button" data-action="replay">משחק חוזר</button><button class="secondary" type="button" data-action="home">בחירת רמה אחרת</button></div></section>
-<footer>מאגר השאלות מבוסס על טבלת הקטגוריות של סיפור חוזר. קישורי עברית פותחים חיפוש של הספר; כריכות מקוריות עדיין דורשות אימות והטמעה. תקצירי הספרים נכתבו בקיצור לצורך השאלון.</footer>
+<footer>מאגר השאלות מבוסס על טבלת הקטגוריות של סיפור חוזר. הכריכות נטענות ממאגרי ספרים מקוונים, תוך העדפת מהדורה בעברית כשזמינה. אפשר לפתוח חיפוש של הספר באתר עברית. תקצירי הספרים נכתבו בקיצור לצורך השאלון.</footer>
 </main>
 <script>
 const data=[
@@ -108,7 +108,40 @@ const data=[
 ]];
 let levelNow=0,index=0,points=0,done=false,quizModeAll=false,questions=[],mistakes=[],correctCategories=new Set(),playerName="שחקן",runSaved=false;
 let fullBank=[];
-async function loadFullBank(){const response=await fetch('./questions-41.json',{cache:'no-store'});if(!response.ok)throw new Error('load failed');const payload=await response.json();fullBank=payload.questions.map(q=>({book:q.book,author:q.author,cover:'https://placehold.co/300x450/f0f3f0/365744?text='+encodeURIComponent(q.book),coverSource:'https://www.e-vrit.co.il/search?q='+encodeURIComponent(q.book),correct:q.category,options:q.options,synopsis:q.synopsis,reason:q.reason,difficulty:q.difficulty}));return fullBank;}
+const coverCache=new Map();
+function preferredLanguage(q){if(q.category.startsWith('אנגלית'))return 'en';if(q.category==='רוסית')return 'ru';return 'he'}
+async function findBookCover(q){
+ const key=q.book+'|'+q.author;if(coverCache.has(key))return coverCache.get(key);
+ const lang=preferredLanguage(q);
+ const query='intitle:'+q.book+' inauthor:'+q.author;
+ async function googleSearch(languageOnly){
+  const params=new URLSearchParams({q:query,maxResults:'8',printType:'books'});
+  if(languageOnly)params.set('langRestrict',lang);
+  const response=await fetch('https://www.googleapis.com/books/v1/volumes?'+params.toString());
+  if(!response.ok)throw new Error('Google Books '+response.status);
+  const data=await response.json();
+  const items=(data.items||[]).filter(item=>item.volumeInfo&&item.volumeInfo.imageLinks);
+  const preferred=items.find(item=>item.volumeInfo.language===lang);
+  return preferred||items[0]||null;
+ }
+ let cover=null;
+ try{let item=await googleSearch(true);if(!item)item=await googleSearch(false);if(item){const links=item.volumeInfo.imageLinks;cover=(links.extraLarge||links.large||links.medium||links.thumbnail||links.smallThumbnail||'').replace(/^http:/,'https:').replace('&edge=curl','');}}catch(error){console.warn('Google Books cover lookup failed:',q.book,error)}
+ if(!cover){
+  try{
+   const params=new URLSearchParams({q:q.book+' '+q.author,limit:'8'});
+   const response=await fetch('https://openlibrary.org/search.json?'+params.toString());
+   if(response.ok){const data=await response.json();const docs=(data.docs||[]).filter(d=>d.cover_i&&(!d.language||d.language.includes(lang)));const chosen=docs[0]||(data.docs||[]).find(d=>d.cover_i);if(chosen)cover='https://covers.openlibrary.org/b/id/'+chosen.cover_i+'-L.jpg?default=false';}
+  }catch(error){console.warn('Open Library cover lookup failed:',q.book,error)}
+ }
+ coverCache.set(key,cover);return cover;
+}
+async function loadFullBank(){
+ const response=await fetch('./questions-41.json',{cache:'no-store'});if(!response.ok)throw new Error('load failed');
+ const payload=await response.json();
+ fullBank=payload.questions.map(q=>({book:q.book,author:q.author,cover:'',coverSource:'https://www.e-vrit.co.il/search?q='+encodeURIComponent(q.book),correct:q.category,options:q.options,synopsis:q.synopsis,reason:q.reason,difficulty:q.difficulty}));
+ for(let i=0;i<fullBank.length;i+=5){await Promise.all(fullBank.slice(i,i+5).map(async(q,j)=>{q.cover=await findBookCover(payload.questions[i+j])||'https://placehold.co/300x450/f0f3f0/365744?text='+encodeURIComponent(q.book)}));}
+ return fullBank;
+}
 
 const SUPABASE_URL="https://ahfsyrsgpjgtsepivydr.supabase.co";
 const SUPABASE_KEY="sb_publishable_CBUIOgQVW6fdIefmDCaeFw_IPg0JJxW";
