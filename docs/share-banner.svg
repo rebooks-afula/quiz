@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff8e7"/><stop offset="1" stop-color="#e7efcf"/></linearGradient></defs>
+<rect width="1200" height="630" fill="url(#bg)"/>
+<path d="M0 535 Q310 470 600 550 T1200 500 V630 H0Z" fill="#78935a"/>
+<g transform="translate(830 190)">
+<rect x="185" y="70" width="105" height="260" rx="12" fill="#24583c"/><rect x="300" y="115" width="105" height="215" rx="12" fill="#d69a42"/><rect x="415" y="90" width="105" height="240" rx="12" fill="#426c75"/>
+<path d="M0 310h490l-25 95H25z" fill="#234f39"/><path d="M20 405h450l-22 70H42z" fill="#bd6742"/>
+<path d="M65 280q90-70 180 0v45q-90-70-180 0z" fill="#f4e7c8" stroke="#234f39" stroke-width="10"/><path d="M245 280q90-70 180 0v45q-90-70-180 0z" fill="#f4e7c8" stroke="#234f39" stroke-width="10"/>
+</g>
+<g fill="#24583c" font-family="Arial,sans-serif" text-anchor="middle">
+<text x="475" y="225" font-size="76" font-weight="bold">אתגר קטגוריות הספרים</text>
+<text x="475" y="315" font-size="36">משחקים, מזהים ולומדים לסווג ספרים</text>
+<text x="475" y="405" font-size="25">שאלון אינטראקטיבי · סיפור חוזר</text>
+</g>
+<g fill="#78935a" font-family="Arial" font-weight="bold"><text x="100" y="160" font-size="120">?</text><text x="170" y="260" font-size="68">?</text></g>
+</svg>
