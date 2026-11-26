@@ -185,15 +185,15 @@
     },
     {
       "id": 13,
-      "category": "אנגלית כללי",
+      "category": "אנגלית ילדים",
       "book": "The Very Hungry Caterpillar",
       "author": "Eric Carle",
       "difficulty": 1,
       "synopsis": "זחל קטן אוכל מאכלים שונים לאורך השבוע והופך לפרפר.",
-      "reason": "הספר במהדורה האנגלית, והקטגוריה היא שפה אנגלית ללא ז׳אנר מסוים.",
+      "reason": "זהו ספר תמונות לילדים שנכתב באנגלית, ומיועד להקראה ולקריאה ראשונית של ילדים. לכן הוא מתאים לקטגוריית אנגלית ילדים.",
       "coverUrl": "https://d3puo8fj28n16q.cloudfront.net/eyJidWNrZXQiOiJzaW1hbmlhLXB1YmxpYy1hc3NldHMiLCJrZXkiOiJib29raW1hZ2VzL2NvdmVyczEwLzEwNDUzMC5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjM4NCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwidG9Gb3JtYXQiOiJhdmlmIiwiYXZpZiI6eyJxdWFsaXR5Ijo2MH19fQ==",
       "options": [
-        "אנגלית כללי",
+        "אנגלית ילדים",
         "רומן ארוטי",
         "צבא וביטחון"
       ]
