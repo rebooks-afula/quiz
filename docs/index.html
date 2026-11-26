@@ -224,14 +224,13 @@ function capturePlayerName(){const field=el("playerName");playerName=(field&&fie
 
 const el=id=>document.getElementById(id);
 function randomQuestions(pool,count=3){const shuffled=pool.slice();for(let i=shuffled.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]]}return shuffled.slice(0,Math.min(count,shuffled.length))}
-async function start(n){capturePlayerName();try{await loadFullBank()}catch(e){alert('לא ניתן לטעון את השאלון. נסו לרענן את הדף.');return}levelNow=n;quizModeAll=false;questions=fullBank.filter(q=>q.difficulty===n+1);resetQuiz()}
+async function start(n){capturePlayerName();try{await loadFullBank()}catch(e){alert('לא ניתן לטעון את השאלון. נסו לרענן את הדף.');return}levelNow=n;quizModeAll=false;const byCategory=new Map();fullBank.forEach(q=>{if(!byCategory.has(q.category))byCategory.set(q.category,[]);byCategory.get(q.category).push(q)});const categories=[...byCategory.keys()];for(let i=categories.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[categories[i],categories[j]]=[categories[j],categories[i]]}questions=categories.slice(0,15).map(category=>{const books=byCategory.get(category);const matching=books.filter(q=>q.difficulty===n+1);const pool=matching.length?matching:books;return {...pool[Math.floor(Math.random()*pool.length)]}});resetQuiz()}
 async function startAll(){capturePlayerName();try{await loadFullBank()}catch(e){alert('לא ניתן לטעון את השאלון. נסו לרענן את הדף.');return}
 levelNow=0;quizModeAll=true;
 const byCategory=new Map();fullBank.forEach(q=>{if(!byCategory.has(q.category))byCategory.set(q.category,[]);byCategory.get(q.category).push(q)});
 const cats=[...byCategory.keys()];for(let i=cats.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[cats[i],cats[j]]=[cats[j],cats[i]]}
 let history={};try{history=JSON.parse(localStorage.getItem('sipurChozerLastBooksByCategoryV1')||'{}')}catch(e){}
-const stages=[1,1,1,2,2,2,2,3,3,3];
-questions=cats.slice(0,10).map((category,i)=>{const books=byCategory.get(category);const fresh=books.filter(q=>q.book!==history[category]);const pool=fresh.length?fresh:books;const exact=pool.filter(q=>q.difficulty===stages[i]);const near=exact.length?exact:pool.filter(q=>q.difficulty===Math.min(...pool.map(b=>Math.abs(b.difficulty-stages[i]))));const chosen=near[Math.floor(Math.random()*near.length)];history[category]=chosen.book;return {...chosen,level:['רמה 1 – קל','רמה 2 – בינוני','רמה 3 – קשה'][stages[i]-1]};});
+questions=cats.map((category,i)=>{const books=byCategory.get(category);const fresh=books.filter(q=>q.book!==history[category]);const pool=fresh.length?fresh:books;const chosen=pool[Math.floor(Math.random()*pool.length)];history[category]=chosen.book;return {...chosen,level:'שלב '+(i+1)+' מתוך '+cats.length};});
 try{localStorage.setItem('sipurChozerLastBooksByCategoryV1',JSON.stringify(history))}catch(e){}
 resetQuiz()}
 function resetQuiz(){runSaved=false;index=0;points=0;mistakes=[];correctCategories=new Set();el("points").classList.toggle("hidden",freePlay);el('home').classList.add('hidden');el('result').classList.add('hidden');el('quiz').classList.remove('hidden');render()}
